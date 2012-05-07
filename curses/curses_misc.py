@@ -454,12 +454,15 @@ class Dialog2(urwid.WidgetWrap):
     # buttons: tuple of name,exitcode
     def add_buttons(self, buttons):
         l = []
+        maxlen = 0
         for name, exitcode in buttons:
             b = urwid.Button( name, self.button_press )
             b.exitcode = exitcode
             b = urwid.AttrWrap( b, 'body','focus' )
             l.append( b )
-        self.buttons = urwid.GridFlow(l, 10, 3, 1, 'center')
+            maxlen = max(len(name), maxlen)
+        maxlen += 4 # because of '< ... >'
+        self.buttons = urwid.GridFlow(l, maxlen, 3, 1, 'center')
         self.frame.footer = urwid.Pile( [ urwid.Divider(),
             self.buttons ], focus_item = 1)
 
@@ -508,14 +511,17 @@ class Dialog2(urwid.WidgetWrap):
 
 # Simple dialog with text in it and "OK"
 class TextDialog(Dialog2):
-    def __init__(self, text, height, width, header=None,align='left'):
+    def __init__(self, text, height, width, header=None, align='left',
+        buttons=(_('OK'), 1)):
         l = [urwid.Text(text)]
         body = urwid.ListBox(l)
         body = urwid.AttrWrap(body, 'body')
 
         Dialog2.__init__(self, header, height+2, width+2, body)
-        self.add_buttons([('OK',1)])
-
+        if type(buttons) == list:
+            self.add_buttons(buttons)
+        else:
+            self.add_buttons([buttons])
 
     def unhandled_key(self, size, k):
         if k in ('up','page up','down','page down'):
